@@ -23,12 +23,20 @@ if [ -z "$MODEL_PATH" ]; then
     MODEL_PATH="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
 fi
 
+if [ -z "$EXPERIMENT_NAME" ]; then
+    EXPERIMENT_NAME='14b-32k-grpo+-code'
+fi
+
+if [ -z "$DATA_DIR" ]; then
+    DATA_DIR=/workspace/rllm/rllm/data
+fi
+
 # Train over 4 nodes, 8 A100-80GB GPUs per node.
 python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
-    data.train_files=$HOME/rllm/data/deepcoder_train.parquet \
-    data.val_files=$HOME/rllm/data/test_livecodebench.parquet \
-    data.train_batch_size=128 \
+    data.train_files=$DATA_DIR/deepcoder_train.parquet \
+    data.val_files=$DATA_DIR/test_livecodebench.parquet \
+    data.train_batch_size=512 \
     data.val_batch_size=512 \
     data.max_prompt_length=2048 \
     data.max_response_length=32768 \
@@ -65,10 +73,10 @@ python3 -m verl.trainer.main_ppo \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \
     trainer.project_name='deepcoder' \
-    trainer.experiment_name='14b-32k-grpo+-code' \
+    trainer.experiment_name=$EXPERIMENT_NAME \
     +trainer.val_before_train=False \
     trainer.n_gpus_per_node=8 \
-    trainer.nnodes=4 \
+    trainer.nnodes=16 \
     trainer.save_freq=10 \
     trainer.test_freq=10 \
     trainer.default_hdfs_dir=null \

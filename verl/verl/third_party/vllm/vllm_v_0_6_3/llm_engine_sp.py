@@ -48,7 +48,8 @@ from vllm.transformers_utils.detokenizer import Detokenizer
 from vllm.transformers_utils.tokenizer import AnyTokenizer
 from vllm.usage.usage_lib import UsageContext, is_usage_stats_enabled, usage_message
 from vllm.utils import Counter, weak_bind
-from vllm.version import __version__ as VLLM_VERSION
+#from vllm.version import __version__ as VLLM_VERSION
+VLLM_VERSION="0.6.3"
 
 from .arg_utils import EngineArgs
 from .config import LoadConfig, ModelConfig

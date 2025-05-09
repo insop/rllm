@@ -369,7 +369,8 @@ def execute_std_code(method, synthesized_code, inputs_list, outputs_list, timeou
             temp_file_name = temp_input.name
             stdout, stderr = "", ""
             try:
-                result = subprocess.run(['bash', '-c', 'ulimit -v 10485760; python3 ' + temp_program_path], 
+                # result = subprocess.run(['bash', '-c', 'ulimit -v 10485760; python3 ' + temp_program_path], 
+                result = subprocess.run(['bash', '-c', ' python3 ' + temp_program_path], 
                                         stdin=temp_input,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE,

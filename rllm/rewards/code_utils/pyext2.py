@@ -108,18 +108,27 @@ else:
         newf.__dict__.update(f.__dict__)
         return newf
     def argspec(f):
-        return inspect.getargspec(f)
+        if sys.version_info.major == 3:
+            return inspect.getfullargspec(f)
+        else:
+            return inspect.getargspec(f)
     eval(compile('def _exec(m,g): exec m in g', '<exec>', 'exec'))
 
 def _gettypes(args):
     return tuple(map(type, args))
 
-oargspec = inspect.getargspec
+# Replace the deprecated inspect.getargspec with inspect.getfullargspec for Python 3
+if sys.version_info.major == 3:
+    oargspec = inspect.getfullargspec
+else:
+    oargspec = inspect.getargspec
 
 def _argspec(func):
     return __targspec(func, oargspec)
 
-inspect.getargspec = _argspec
+# Only monkey-patch getargspec if it exists
+if hasattr(inspect, 'getargspec'):
+    inspect.getargspec = _argspec
 
 try:
     import IPython
@@ -127,10 +136,16 @@ except ImportError:
     IPython = None
 else:
     # Replace IPython's argspec
-    oipyargspec = IPython.core.oinspect.getargspec
-    def _ipyargspec(func):
-        return __targspec(func, oipyargspec, '__orig_arg_ipy__')
-    IPython.core.oinspect.getargspec = _ipyargspec
+    if hasattr(IPython.core.oinspect, 'getargspec'):
+        oipyargspec = IPython.core.oinspect.getargspec
+        def _ipyargspec(func):
+            return __targspec(func, oipyargspec, '__orig_arg_ipy__')
+        IPython.core.oinspect.getargspec = _ipyargspec
+    elif hasattr(IPython.core.oinspect, 'getfullargspec'):
+        oipyargspec = IPython.core.oinspect.getfullargspec
+        def _ipyargspec(func):
+            return __targspec(func, oipyargspec, '__orig_arg_ipy__')
+        IPython.core.oinspect.getargspec = _ipyargspec
 
 class overload(object):
     '''Simple function overloading in Python.'''
@@ -177,7 +192,10 @@ class overload(object):
             _newf.__is_overload__ = True
             _newf.__orig_arg__ = argspec(f)
             if IPython:
-                _newf.__orig_arg_ipy__ = IPython.core.oinspect.getargspec(f)
+                if hasattr(IPython.core.oinspect, 'getargspec'):
+                    _newf.__orig_arg_ipy__ = IPython.core.oinspect.getargspec(f)
+                elif hasattr(IPython.core.oinspect, 'getfullargspec'):
+                    _newf.__orig_arg_ipy__ = IPython.core.oinspect.getfullargspec(f)
             return _newf
         return _wrap
     @classmethod
@@ -232,7 +250,10 @@ class overload(object):
             _newf.__is_overload__ = True
             _newf.__orig_arg__ = argspec(f)
             if IPython:
-                _newf.__orig_arg_ipy__ = IPython.core.oinspect.getargspec(f)
+                if hasattr(IPython.core.oinspect, 'getargspec'):
+                    _newf.__orig_arg_ipy__ = IPython.core.oinspect.getargspec(f)
+                elif hasattr(IPython.core.oinspect, 'getfullargspec'):
+                    _newf.__orig_arg_ipy__ = IPython.core.oinspect.getfullargspec(f)
             return _newf
         return _wrap
 

@@ -23,11 +23,16 @@ if [ -z "$MODEL_PATH" ]; then
     MODEL_PATH="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 fi
 
+EXPERIMENT_NAME='1.5b-8k-grpo'
+
+if [ -z "$DATA_DIR" ]; then
+    DATA_DIR=/workspace/rllm/rllm/data
+fi
 # Train over a single node, 8 A100-80GB GPUs.
 python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
-    data.train_files=$HOME/rllm/data/deepscaler_train.parquet \
-    data.val_files=$HOME/rllm/data/aime.parquet \
+    data.train_files=$DATA_DIR/deepscaler_train.parquet \
+    data.val_files=$DATA_DIR/aime.parquet \
     data.train_batch_size=128 \
     data.val_batch_size=512 \
     data.max_prompt_length=1024 \
@@ -57,7 +62,7 @@ python3 -m verl.trainer.main_ppo \
     trainer.critic_warmup=0 \
     trainer.logger=['console','wandb'] \
     trainer.project_name='deepscaler' \
-    trainer.experiment_name='deepscaler-1.5b-8k' \
+    trainer.experiment_name=$EXPERIMENT_NAME \
     +trainer.val_before_train=True \
     trainer.n_gpus_per_node=8 \
     trainer.nnodes=1 \
